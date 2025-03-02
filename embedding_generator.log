@@ -1,0 +1,25 @@
+2025-03-02 13:38:15,154 - embedding_generator - CRITICAL - Unhandled exception: asyncio.run() cannot be called from a running event loop
+Traceback (most recent call last):
+  File "/var/folders/49/6ydqkbq172ngzt6p49xfm6b00000gn/T/marimo_94375/__marimo__cell_Hbol_.py", line 363, in <module>
+    exit_code = asyncio.run(main())
+                ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/asyncio/runners.py", line 190, in run
+    raise RuntimeError(
+RuntimeError: asyncio.run() cannot be called from a running event loop
+2025-03-02 13:38:51,574 - asyncio - ERROR - Exception in callback InterruptHandler._interrupt_handler()
+handle: <Handle InterruptHandler._interrupt_handler()>
+Traceback (most recent call last):
+  File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/asyncio/events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/site-packages/marimo/_server/api/interrupt.py", line 62, in _interrupt_handler
+    response = input(
+               ^^^^^^
+ValueError: I/O operation on closed file.
+2025-03-02 14:27:10,643 - csv_embedding_generator - CRITICAL - Unhandled exception: asyncio.run() cannot be called from a running event loop
+Traceback (most recent call last):
+  File "/var/folders/49/6ydqkbq172ngzt6p49xfm6b00000gn/T/ipykernel_2495/2335792938.py", line 184, in <module>
+    exit_code = asyncio.run(main())
+                ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/asyncio/runners.py", line 190, in run
+    raise RuntimeError(
+RuntimeError: asyncio.run() cannot be called from a running event loop
