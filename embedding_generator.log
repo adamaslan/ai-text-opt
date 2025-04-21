@@ -23,3 +23,11 @@ Traceback (most recent call last):
   File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/asyncio/runners.py", line 190, in run
     raise RuntimeError(
 RuntimeError: asyncio.run() cannot be called from a running event loop
+2025-04-21 18:01:45,478 - csv_embedding_generator - CRITICAL - Unhandled exception: asyncio.run() cannot be called from a running event loop
+Traceback (most recent call last):
+  File "/var/folders/49/6ydqkbq172ngzt6p49xfm6b00000gn/T/ipykernel_77296/2335792938.py", line 184, in <module>
+    exit_code = asyncio.run(main())
+                ^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Caskroom/miniforge/base/envs/nunu24/lib/python3.12/asyncio/runners.py", line 190, in run
+    raise RuntimeError(
+RuntimeError: asyncio.run() cannot be called from a running event loop
