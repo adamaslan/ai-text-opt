@@ -1,0 +1,187 @@
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+.env.prod
+credentials.json
+api_keys.txt
+secrets.yml
+.secrets/
+
+# API Keys & Authentication
+google_creds.json
+google-cloud-credentials.json
+service_account.json
+*_credentials.json
+*_api_key*
+
+# Python Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+conda_env/
+.conda/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.code-workspace
+.vscode-settings.json
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+.hypothesis/
+.pytest/
+
+# Jupyter & Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+.jupyter/
+jupyter_notebook_config.json
+.jupyterlab-settings/
+
+# Data Files (Large)
+*.csv.bak
+*.pkl.bak
+*.parquet.bak
+data/raw/*
+data/processed/*
+*.zip
+*.tar
+*.tar.gz
+
+# Generated Embeddings & Cache
+embeddings_cache/
+*.faiss
+*.pkl
+*.pickle
+cache/
+.cache/
+huggingface_cache/
+torch_cache/
+sentence_transformers_cache/
+
+# Logs
+*.log
+logs/
+*.txt.log
+
+# Temporary Files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Project-specific
+output/
+results/
+checkpoint/
+model_artifacts/
+*.out
+therapeutic_response*.pkl
+intense_response*.pkl
+action_plan*.pkl
+desire_analysis*.pkl
+refined_plan*.pkl
+hyper_intense*.pkl
+
+# Node/Web (if using any web components)
+node_modules/
+package-lock.json
+yarn.lock
+dist/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Environment-specific
+lightrad-viz/
+.lightrad-viz/
+
+# Compiled files
+*.o
+*.a
+*.dylib
+*.so.*
+
+# Profiling & Performance
+.prof
+*.prof
+prof/
+perf/
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+.#*
+
+# Large files (keep local but don't commit)
+*.csv
+!**/example.csv
+!**/sample.csv
+*.parquet
+*.h5
+*.hdf5
+*.db
+*.sqlite
+
+# Keep embeddings folder structure but ignore large files
+embeddings/*.csv
+embeddings/*.pkl
+embeddings/*.faiss
+!embeddings/.gitkeep

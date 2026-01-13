@@ -1,0 +1,17 @@
+name: ai-text-opt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scipy
+  - transformers
+  - sentence-transformers
+  - faiss-cpu
+  - scikit-learn
+  - pip
+  - pip:
+    - python-dotenv
+    - langchain-google-genai
