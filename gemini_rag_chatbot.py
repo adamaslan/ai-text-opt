@@ -295,15 +295,15 @@ def run_chat_interface(chain, retriever) -> None:
             response = chain.invoke(query)
             print(response)
 
-            # Get and display source documents
+            # Get and display source documents (reuse retriever.invoke to avoid double fetch)
             try:
-                docs = retriever.get_relevant_documents(query)
+                docs = retriever.invoke(query)
                 if docs:
                     print("\n📚 Sources:")
                     for i, doc in enumerate(docs[:3], 1):
                         excerpt = doc.page_content[:100].replace("\n", " ")
                         print(f"  {i}. {excerpt}...")
-            except Exception as e:
+            except Exception:
                 # Sources are optional
                 pass
 

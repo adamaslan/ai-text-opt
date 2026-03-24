@@ -134,7 +134,7 @@ def test_retrieval(retriever):
     try:
         # Test with a simple query
         test_query = "question"
-        docs = retriever.get_relevant_documents(test_query)
+        docs = retriever.invoke(test_query)
         print(f"✓ Retrieved {len(docs)} documents for query: '{test_query}'")
         if docs:
             print(f"✓ Top result (truncated): {docs[0].page_content[:100]}...")

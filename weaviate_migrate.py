@@ -98,9 +98,9 @@ class WeaviateMigration:
             with collection.batch.fixed_size(batch_size=50) as batch:
                 for item in data:
                     properties = {
-                        "title": item.get("id", ""),
+                        "title": item.get("properties", {}).get("title") or item.get("id", ""),
                         "text_content": item.get("text_preview", ""),
-                        "source": "chromadb_migration",
+                        "source": item.get("properties", {}).get("source", "chromadb_migration"),
                         "text_preview": item.get("text_preview", "")[:200],
                     }
                     
