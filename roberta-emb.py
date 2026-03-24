@@ -56,7 +56,7 @@ def _():
         """Configuration for embedding generation process."""
         input_file: Path
         output_file: Path
-        ollama_model: str = "distilroberta"
+        ollama_model: str = "dolphin-phi:2.7b"
         ollama_url: str = "http://localhost:11434/api/embeddings"
         sentence_transformer_model: str = "all-MiniLM-L6-v2"
         batch_size: int = 32
@@ -91,7 +91,7 @@ def _():
             return cls(
                 input_file=Path(os.getenv("EMBEDDING_INPUT_FILE", "input.pkl")),
                 output_file=Path(os.getenv("EMBEDDING_OUTPUT_FILE", "embeddings.pkl")),
-                ollama_model=os.getenv("EMBEDDING_OLLAMA_MODEL", "distilroberta"),
+                ollama_model=os.getenv("EMBEDDING_OLLAMA_MODEL", "dolphin-phi:2.7b"),
                 ollama_url=os.getenv("EMBEDDING_OLLAMA_URL", "http://localhost:11434/api/embeddings"),
                 sentence_transformer_model=os.getenv("EMBEDDING_SENTENCE_TRANSFORMER_MODEL", "all-MiniLM-L6-v2"),
                 batch_size=int(os.getenv("EMBEDDING_BATCH_SIZE", "32")),

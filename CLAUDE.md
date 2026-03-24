@@ -81,12 +81,11 @@ ollama serve
 ollama list
 
 # Run specific model
-ollama run distilroberta
+ollama run dolphin-phi:2.7b
 ```
 
-The default models used are:
-- **Generation**: `hf.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF:Q3_K_L`
-- **Embeddings**: `distilroberta`
+The default Ollama model used is:
+- **Dolphin-Phi 2.7B**: `dolphin-phi:2.7b` (for both generation and embeddings)
 
 ### Processing Data
 
@@ -102,7 +101,7 @@ Example configuration via env vars:
 ```bash
 export EMBEDDING_INPUT_FILE="input.pkl"
 export EMBEDDING_OUTPUT_FILE="embeddings.pkl"
-export EMBEDDING_OLLAMA_MODEL="distilroberta"
+export EMBEDDING_OLLAMA_MODEL="dolphin-phi:2.7b"
 export EMBEDDING_BATCH_SIZE="32"
 export EMBEDDING_USE_GPU="true"
 ```
@@ -153,7 +152,7 @@ The project follows a **multi-phase agent pattern**:
 ### OllamaClient
 
 ```python
-model_name = "hf.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF:Q3_K_L"
+model_name = "dolphin-phi:2.7b"
 base_url = "http://localhost:11434"
 max_retries = 5
 request_timeout = 300  # seconds

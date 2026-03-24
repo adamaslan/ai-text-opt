@@ -41,7 +41,7 @@ def _(prompt):
     # Cell 2: Ollama Client Implementation
     class OllamaClient:
         """Robust Ollama client with configurable timeouts"""
-        def __init__(self, model_name: str = "hf.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF:Q3_K_L", base_url: str = "http://localhost:11434"):
+        def __init__(self, model_name: str = "dolphin-phi:2.7b", base_url: str = "http://localhost:11434"):
             self.model_name = model_name
             self.base_url = base_url
             self.max_retries = 5
