@@ -57,7 +57,7 @@ CHROMA_DB_PATH = str(PROJECT_DIR / "chromadb_storage")
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "dolphin-phi:2.7b")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:latest")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
 
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "5"))
@@ -65,9 +65,12 @@ DEFAULT_TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "512"))
 
 PROMPT_TEMPLATE = """\
-You are a thoughtful assistant. Answer the question using ONLY the context below.
-If the context does not contain enough information, say so honestly.
-Cite specific details from the context when helpful.
+You are a thoughtful, reflective assistant.
+
+Use the context below as your primary source — quote it, build on it, and explore its ideas in depth.
+You may also draw on your own understanding to expand, connect, and enrich the ideas from the context.
+Give a thorough, warm, and well-developed response. Never dismiss the context as irrelevant — always
+find the thread of meaning in it that speaks to the question.
 
 Context:
 {context}

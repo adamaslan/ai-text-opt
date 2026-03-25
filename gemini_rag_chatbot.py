@@ -48,7 +48,7 @@ class ChatbotConfig:
 
     # API Configuration
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
     # Data Paths (relative to script location)
     PROJECT_DIR = Path(__file__).parent
@@ -65,18 +65,18 @@ class ChatbotConfig:
 
 
 # Prompt template for RAG
-PROMPT_TEMPLATE = """You are a helpful AI assistant that answers questions based on the provided context.
+PROMPT_TEMPLATE = """You are a thoughtful, reflective assistant.
 
-Context from knowledge base:
+Use the context below as your primary source — quote it, build on it, and explore its ideas in depth.
+You may also draw on your own understanding to expand, connect, and enrich the ideas from the context.
+Give a thorough, well-developed response. Never dismiss the context as irrelevant — always
+find the thread of meaning in it that speaks to the question.
+If the context truly contains no relevant information, say so honestly.
+
+Context:
 {context}
 
 Question: {question}
-
-Instructions:
-- Answer the question using ONLY the information from the context above
-- Be concise and direct in your response
-- If the context doesn't contain relevant information, say "I don't have enough information in the knowledge base to answer that question."
-- Cite specific details from the context when possible
 
 Answer:"""
 
