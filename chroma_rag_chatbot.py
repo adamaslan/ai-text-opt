@@ -69,10 +69,11 @@ You are a thoughtful, reflective assistant.
 
 Use the context below as your primary source — quote it, build on it, and explore its ideas in depth.
 You may also draw on your own understanding to expand, connect, and enrich the ideas from the context.
-Give a thorough, warm, and well-developed response. Never dismiss the context as irrelevant — always
+Give a thorough, well-developed response. Never dismiss the context as irrelevant — always
 find the thread of meaning in it that speaks to the question.
+If the context truly contains no relevant information, say so honestly.
 
-Context:
+{history}Context:
 {context}
 
 Question: {question}
@@ -280,6 +281,44 @@ class WeaviateRetriever(VectorRetriever):
 
 
 # ---------------------------------------------------------------------------
+# Conversation history
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Turn:
+    role: str   # "user" or "assistant"
+    content: str
+
+
+class ConversationHistory:
+    """Rolling window of conversation turns passed into each prompt."""
+
+    def __init__(self, max_turns: int = 6):
+        self._turns: List[Turn] = []
+        self._max_turns = max_turns
+
+    def add(self, role: str, content: str) -> None:
+        self._turns.append(Turn(role=role, content=content))
+        # Keep only the most recent max_turns pairs
+        if len(self._turns) > self._max_turns * 2:
+            self._turns = self._turns[-(self._max_turns * 2):]
+
+    def format(self) -> str:
+        """Returns a formatted string to inject into the prompt, or empty string."""
+        if not self._turns:
+            return ""
+        lines = ["Previous conversation:"]
+        for turn in self._turns:
+            label = "You" if turn.role == "user" else "Assistant"
+            lines.append(f"  {label}: {turn.content}")
+        lines.append("")
+        return "\n".join(lines) + "\n"
+
+    def clear(self) -> None:
+        self._turns = []
+
+
+# ---------------------------------------------------------------------------
 # LLM backends
 # ---------------------------------------------------------------------------
 
@@ -384,28 +423,47 @@ class OllamaBackend(LLMBackend):
 
 class ChromaRAGChatbot:
     """
-    Wires a VectorRetriever to an LLMBackend.
+    Wires a VectorRetriever to an LLMBackend with rolling conversation history.
     Swap either component without touching the chat loop.
     """
 
-    def __init__(self, retriever: VectorRetriever, llm: LLMBackend, top_k: int = DEFAULT_TOP_K):
+    def __init__(
+        self,
+        retriever: VectorRetriever,
+        llm: LLMBackend,
+        top_k: int = DEFAULT_TOP_K,
+        history_turns: int = 6,
+    ):
         self._retriever = retriever
         self._llm = llm
         self._top_k = top_k
+        self._history = ConversationHistory(max_turns=history_turns)
 
     def ask(self, question: str) -> tuple[str, List[RetrievedDoc]]:
-        """Returns (answer, retrieved_docs)."""
+        """Returns (answer, retrieved_docs) and updates conversation history."""
         docs = self._retriever.retrieve(question, self._top_k)
 
         if not docs:
-            return "I couldn't find any relevant information in the knowledge base.", []
+            answer = "I couldn't find any relevant information in the knowledge base."
+            self._history.add("user", question)
+            self._history.add("assistant", answer)
+            return answer, []
 
         context = "\n\n---\n\n".join(
             f"[{d.source_collection}] {d.text}" for d in docs
         )
-        prompt = PROMPT_TEMPLATE.format(context=context, question=question)
+        prompt = PROMPT_TEMPLATE.format(
+            history=self._history.format(),
+            context=context,
+            question=question,
+        )
         answer = self._llm.generate(prompt)
+        self._history.add("user", question)
+        self._history.add("assistant", answer)
         return answer, docs
+
+    def clear_history(self) -> None:
+        self._history.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -495,6 +553,13 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Hide source documents after each answer",
     )
+    parser.add_argument(
+        "--history-turns",
+        type=int,
+        default=6,
+        dest="history_turns",
+        help="Number of conversation turns to keep in memory (default: 6)",
+    )
     return parser.parse_args()
 
 
@@ -526,12 +591,18 @@ def main() -> None:
         print(f"\nLLM error: {e}")
         sys.exit(1)
 
-    chatbot = ChromaRAGChatbot(retriever=retriever, llm=llm, top_k=args.top_k)
+    chatbot = ChromaRAGChatbot(
+        retriever=retriever,
+        llm=llm,
+        top_k=args.top_k,
+        history_turns=args.history_turns,
+    )
 
     print(f"  LLM        : {llm.name}")
     print(f"  Retriever  : {args.retriever}")
     print(f"  Top-K      : {args.top_k}")
-    print(f"\nType your question or 'exit' to quit.")
+    print(f"  Memory     : last {args.history_turns} turns")
+    print(f"\nType your question, 'clear' to reset memory, or 'exit' to quit.")
     print("=" * 65 + "\n")
 
     while True:
@@ -546,6 +617,10 @@ def main() -> None:
         if query.lower() in ("exit", "quit", "q", "bye"):
             print("Goodbye!")
             break
+        if query.lower() == "clear":
+            chatbot.clear_history()
+            print("  Memory cleared.\n")
+            continue
 
         try:
             answer, docs = chatbot.ask(query)
