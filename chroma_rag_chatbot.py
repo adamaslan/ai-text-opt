@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
+import json
 import requests
 from dotenv import load_dotenv
 
@@ -55,8 +56,9 @@ load_dotenv(dotenv_path=PROJECT_DIR / ".env")
 CHROMA_DB_PATH = str(PROJECT_DIR / "chromadb_storage")
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "dolphin-phi:2.7b")
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:latest")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
 
 DEFAULT_TOP_K = int(os.getenv("RAG_TOP_K", "5"))
 DEFAULT_TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
@@ -110,17 +112,42 @@ class VectorRetriever(ABC):
 # ChromaDB retriever
 # ---------------------------------------------------------------------------
 
+def _embed_query(text: str, model: str = OLLAMA_EMBED_MODEL, base_url: str = OLLAMA_BASE) -> Optional[List[float]]:
+    """Embed a query string via Ollama to match the 768D stored vectors."""
+    try:
+        resp = requests.post(
+            f"{base_url}/api/embed",
+            json={"model": model, "input": text},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        embeddings = data.get("embeddings") or data.get("embedding")
+        if isinstance(embeddings, list) and embeddings:
+            vec = embeddings[0] if isinstance(embeddings[0], list) else embeddings
+            return vec
+    except Exception as e:
+        logger.warning("Ollama embed failed: %s", e)
+    return None
+
+
 class ChromaRetriever(VectorRetriever):
-    """Retrieves documents from one or more ChromaDB collections."""
+    """Retrieves documents from one or more ChromaDB collections.
+
+    Uses Ollama to embed queries at the same dimensionality (768D) as the
+    stored vectors, bypassing ChromaDB's default built-in embedder.
+    """
 
     def __init__(
         self,
         db_path: str = CHROMA_DB_PATH,
         collections: Optional[List[str]] = None,
+        embed_model: str = OLLAMA_EMBED_MODEL,
     ):
         import chromadb as _chromadb
 
         self._client = _chromadb.PersistentClient(path=db_path)
+        self._embed_model = embed_model
         all_names = [c.name for c in self._client.list_collections()]
 
         if not all_names:
@@ -142,13 +169,19 @@ class ChromaRetriever(VectorRetriever):
         return [c.name for c in self._client.list_collections()]
 
     def retrieve(self, query: str, top_k: int) -> List[RetrievedDoc]:
+        # Embed query with Ollama to match stored 768D vectors
+        query_vec = _embed_query(query, model=self._embed_model)
+        if query_vec is None:
+            logger.error("Could not embed query — is Ollama running?")
+            return []
+
         docs: List[RetrievedDoc] = []
 
         for name in self._target:
             collection = self._client.get_collection(name)
             try:
                 results = collection.query(
-                    query_texts=[query],
+                    query_embeddings=[query_vec],
                     n_results=min(top_k, collection.count()),
                     include=["documents", "metadatas", "distances"],
                 )
@@ -387,7 +420,7 @@ def _build_retriever(args: argparse.Namespace) -> VectorRetriever:
     collections = args.collection or None
     if args.retriever == "weaviate":
         return WeaviateRetriever(collections=collections)
-    return ChromaRetriever(collections=collections)
+    return ChromaRetriever(collections=collections, embed_model=args.embed_model)
 
 
 def _build_llm(args: argparse.Namespace) -> LLMBackend:
@@ -442,7 +475,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ollama-model",
         default=OLLAMA_LLM_MODEL,
-        help=f"Ollama model name (default: {OLLAMA_LLM_MODEL})",
+        help=f"Ollama LLM model name (default: {OLLAMA_LLM_MODEL})",
+    )
+    parser.add_argument(
+        "--embed-model",
+        default=OLLAMA_EMBED_MODEL,
+        help=f"Ollama embedding model (default: {OLLAMA_EMBED_MODEL})",
     )
     parser.add_argument(
         "--list-collections",
