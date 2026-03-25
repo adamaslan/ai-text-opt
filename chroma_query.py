@@ -30,19 +30,12 @@ class ChromaQuery:
     # ------------------------------------------------------------------
 
     def search_all(self, query: str, limit: int = 5) -> Dict[str, List]:
-        """Search across all collections using stored-vector nearest-neighbour."""
+        """Search across all collections using the provided query text."""
         all_results = {}
         for collection_name, collection in self.collections.items():
             try:
-                # Use a stored embedding as a stand-in so dimension always matches
-                sample = collection.get(limit=1, include=["embeddings"])
-                emb = sample["embeddings"][0] if sample["embeddings"] else None
-                if emb is None:
-                    continue
-                query_vec = emb.tolist() if hasattr(emb, "tolist") else list(emb)
-
                 results = collection.query(
-                    query_embeddings=[query_vec],
+                    query_texts=[query],
                     n_results=limit,
                     include=["documents", "metadatas", "distances"],
                 )
@@ -213,7 +206,7 @@ class ChromaQuery:
 
 HELP = """
 Commands:
-  all <query>              Search all collections (uses first stored vector as proxy)
+  all <query>              Search all collections by query text
   <collection> <query>     Search a specific collection
   quality                  Run quality report on all collections
   quality <collection>     Run quality report on one collection

@@ -88,9 +88,15 @@ def import_vectors(client, data: List[Dict]) -> int:
     try:
         with ideas.batch.fixed_size(batch_size=50) as batch:
             for item in data:
+                data = item.get("data") or {}
+                title = (
+                    data.get("title")
+                    or data.get("idea")
+                    or (str(list(data.values())[0])[:200] if data else "Untitled")
+                )
                 properties = {
-                    "title": str(list(item["data"].values())[0])[:200] if item["data"] else "Untitled",
-                    "content": " ".join([str(v)[:100] for v in item["data"].values()])[:500],
+                    "title": title[:200],
+                    "content": " ".join([str(v)[:100] for v in data.values()])[:500],
                     "text_preview": item.get("text_preview", "")[:200],
                 }
                 
