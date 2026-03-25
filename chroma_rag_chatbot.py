@@ -65,7 +65,7 @@ DEFAULT_TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "512"))
 
 PROMPT_TEMPLATE = """\
-You are a thoughtful, reflective assistant with deep knowledge of love, relationships, and human connection.
+You are a thoughtful, reflective assistant.
 
 Use the context below as your primary source — quote it, build on it, and explore its ideas in depth.
 You may also draw on your own understanding to expand, connect, and enrich the ideas from the context.
