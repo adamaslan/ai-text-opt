@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG Chatbot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+
+    #chat-window {
+      width: 100%;
+      max-width: 720px;
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #f0f0f0;
+      color: #1a1a1a;
+    }
+
+    .sources {
+      align-self: flex-start;
+      font-size: 0.8rem;
+      color: #666;
+      padding: 6px 10px;
+      background: #fafafa;
+      border-left: 3px solid #cbd5e1;
+      border-radius: 4px;
+      max-width: 85%;
+    }
+
+    .sources summary { cursor: pointer; font-weight: 600; margin-bottom: 4px; }
+    .sources ol { padding-left: 18px; }
+    .sources li { margin-bottom: 4px; }
+
+    #input-row {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #question {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    #question:focus { border-color: #2563eb; }
+
+    button {
+      padding: 10px 20px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    button:disabled { background: #93afd6; cursor: not-allowed; }
+
+    .typing { color: #999; font-style: italic; font-size: 0.9rem; align-self: flex-start; }
+  </style>
+</head>
+<body>
+  <h1>RAG Chatbot</h1>
+  <div id="chat-window"></div>
+  <div id="input-row">
+    <input id="question" type="text" placeholder="Ask a question..." autocomplete="off" />
+    <button id="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const API = "http://localhost:8000";
+    const chatWindow = document.getElementById("chat-window");
+    const input = document.getElementById("question");
+    const btn = document.getElementById("send-btn");
+
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+
+    function appendMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `message ${role}`;
+      div.textContent = text;
+      chatWindow.appendChild(div);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return div;
+    }
+
+    function appendSources(sources) {
+      if (!sources || sources.length === 0) return;
+      const details = document.createElement("details");
+      details.className = "sources";
+      const summary = document.createElement("summary");
+      summary.textContent = `Sources (${sources.length})`;
+      details.appendChild(summary);
+      const ol = document.createElement("ol");
+      sources.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = `[${s.collection}] dist=${s.distance} — ${s.excerpt}`;
+        ol.appendChild(li);
+      });
+      details.appendChild(ol);
+      chatWindow.appendChild(details);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const question = input.value.trim();
+      if (!question) return;
+
+      input.value = "";
+      btn.disabled = true;
+      appendMessage("user", question);
+
+      const typing = document.createElement("div");
+      typing.className = "typing";
+      typing.textContent = "Thinking…";
+      chatWindow.appendChild(typing);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+
+      try {
+        const res = await fetch(`${API}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || res.statusText);
+        }
+
+        const data = await res.json();
+        chatWindow.removeChild(typing);
+        appendMessage("assistant", data.answer);
+        appendSources(data.sources);
+      } catch (err) {
+        chatWindow.removeChild(typing);
+        appendMessage("assistant", `Error: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+  </script>
+</body>
+</html>

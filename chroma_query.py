@@ -6,21 +6,35 @@ Search across all collections and assess embedding quality
 
 import logging
 import math
+import os
 from pathlib import Path
 from typing import List, Dict, Optional
 import chromadb
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-CHROMA_DB_PATH = "./chromadb_storage"
+CHROMA_HOST = os.environ.get("CHROMA_HOST", "api.trychroma.com")
+CHROMA_API_KEY = os.environ.get("CHROMA_API_KEY", "")
+CHROMA_TENANT = os.environ.get("CHROMA_TENANT", "default_tenant")
+CHROMA_DATABASE = os.environ.get("CHROMA_DATABASE", "default_database")
 
 
 class ChromaQuery:
     """Query and quality-check interface for ChromaDB"""
 
-    def __init__(self, db_path: str = CHROMA_DB_PATH):
-        self.client = chromadb.PersistentClient(path=str(db_path))
+    def __init__(self):
+        self.client = chromadb.HttpClient(
+            host=CHROMA_HOST,
+            ssl=True,
+            port=443,
+            headers={"x-chroma-token": CHROMA_API_KEY},
+            tenant=CHROMA_TENANT,
+            database=CHROMA_DATABASE,
+        )
         self.collections = {c.name: c for c in self.client.list_collections()}
         logger.info("✓ Connected to ChromaDB")
         logger.info(f"✓ Collections: {list(self.collections.keys())}")
