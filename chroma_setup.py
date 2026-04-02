@@ -7,15 +7,22 @@ Designed to be easily migrated to Weaviate later
 import json
 import logging
 import math
+import os
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 import chromadb
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Configuration
-CHROMA_DB_PATH = "./chromadb_storage"
+CHROMA_HOST = os.environ.get("CHROMA_HOST", "api.trychroma.com")
+CHROMA_API_KEY = os.environ.get("CHROMA_API_KEY", "")
+CHROMA_TENANT = os.environ.get("CHROMA_TENANT", "default_tenant")
+CHROMA_DATABASE = os.environ.get("CHROMA_DATABASE", "default_database")
 EMBEDDING_FILES = {
     "ideas": "ideas_embeddings.json",
     "qa_data": "qa_embeddings.json",
@@ -26,18 +33,19 @@ EMBEDDING_FILES = {
 
 
 class ChromaDBSetup:
-    """Manages ChromaDB with Weaviate migration in mind"""
-    
-    def __init__(self, db_path: str = CHROMA_DB_PATH):
-        """Initialize ChromaDB client"""
-        self.db_path = Path(db_path)
-        self.db_path.mkdir(exist_ok=True)
-        
-        # Persistent local storage
-        self.client = chromadb.PersistentClient(
-            path=str(self.db_path),
+    """Manages ChromaDB Cloud"""
+
+    def __init__(self):
+        """Initialize ChromaDB Cloud client"""
+        self.client = chromadb.HttpClient(
+            host=CHROMA_HOST,
+            ssl=True,
+            port=443,
+            headers={"x-chroma-token": CHROMA_API_KEY},
+            tenant=CHROMA_TENANT,
+            database=CHROMA_DATABASE,
         )
-        logger.info(f"✓ ChromaDB initialized at {self.db_path}")
+        logger.info("✓ ChromaDB Cloud initialized")
     
     def load_json(self, file_path: str) -> List[Dict]:
         """Load embeddings from JSON"""
@@ -343,7 +351,7 @@ def main():
     logger.info("\n" + "=" * 60)
     logger.info("✓ Setup Complete!")
     logger.info("=" * 60)
-    logger.info(f"Database: {CHROMA_DB_PATH}/")
+    logger.info(f"Database: {CHROMA_HOST}")
     logger.info(f"Collections: {list(EMBEDDING_FILES.keys())}")
     logger.info(f"\nMigration files ready:")
     for collection in EMBEDDING_FILES.keys():

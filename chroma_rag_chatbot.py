@@ -53,7 +53,10 @@ logger = logging.getLogger(__name__)
 PROJECT_DIR = Path(__file__).parent
 load_dotenv(dotenv_path=PROJECT_DIR / ".env")
 
-CHROMA_DB_PATH = str(PROJECT_DIR / "chromadb_storage")
+CHROMA_HOST = os.getenv("CHROMA_HOST", "api.trychroma.com")
+CHROMA_API_KEY = os.getenv("CHROMA_API_KEY", "")
+CHROMA_TENANT = os.getenv("CHROMA_TENANT", "default_tenant")
+CHROMA_DATABASE = os.getenv("CHROMA_DATABASE", "default_database")
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "dolphin-phi:2.7b")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:latest")
@@ -143,18 +146,24 @@ class ChromaRetriever(VectorRetriever):
 
     def __init__(
         self,
-        db_path: str = CHROMA_DB_PATH,
         collections: Optional[List[str]] = None,
         embed_model: str = OLLAMA_EMBED_MODEL,
     ):
         import chromadb as _chromadb
 
-        self._client = _chromadb.PersistentClient(path=db_path)
+        self._client = _chromadb.HttpClient(
+            host=CHROMA_HOST,
+            ssl=True,
+            port=443,
+            headers={"x-chroma-token": CHROMA_API_KEY},
+            tenant=CHROMA_TENANT,
+            database=CHROMA_DATABASE,
+        )
         self._embed_model = embed_model
         all_names = [c.name for c in self._client.list_collections()]
 
         if not all_names:
-            raise RuntimeError(f"No collections found in ChromaDB at {db_path}")
+            raise RuntimeError("No collections found in ChromaDB Cloud")
 
         if collections:
             missing = [c for c in collections if c not in all_names]

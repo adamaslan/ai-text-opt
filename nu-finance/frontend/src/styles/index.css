@@ -1,0 +1,114 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Nu-Finance — Global Styles
+   Dark-mode glassmorphism + Inter typography + micro-animations
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tokens ──────────────────────────────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --bg-base:        #0a0d14;
+  --bg-surface:     #111827;
+  --bg-elevated:    #1a2235;
+  --bg-glass:       rgba(26, 34, 53, 0.65);
+
+  --accent:         #3b82f6;
+  --accent-glow:    rgba(59, 130, 246, 0.35);
+  --accent-t1:      #f59e0b;   /* Tactical Opportunist – amber */
+  --accent-t2:      #10b981;   /* Structured Growth – emerald */
+  --accent-both:    #8b5cf6;   /* Both / Comparative – violet */
+
+  --text-primary:   #f0f4ff;
+  --text-secondary: #94a3b8;
+  --text-muted:     #4b5563;
+
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-accent:  rgba(59, 130, 246, 0.4);
+
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 32px var(--accent-glow);
+
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+
+  /* Subtle noise + radial gradient background */
+  background-image:
+    radial-gradient(ellipse 120% 60% at 50% -10%, rgba(59,130,246,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 50% at 90% 110%, rgba(139,92,246,0.08) 0%, transparent 60%);
+}
+
+#root { display: flex; height: 100dvh; }
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+code, pre { font-family: "JetBrains Mono", monospace; }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar            { width: 6px; height: 6px; }
+::-webkit-scrollbar-track      { background: transparent; }
+::-webkit-scrollbar-thumb      { background: var(--text-muted); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover{ background: var(--text-secondary); }
+
+/* ── Glass card mixin ────────────────────────────────────────────────────── */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition),
+              box-shadow var(--transition), transform var(--transition);
+}
+button:active { transform: scale(0.97); }
+
+/* ── Keyframe animations ─────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%       { box-shadow: 0 0 0 8px transparent;      }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.35s ease both; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
