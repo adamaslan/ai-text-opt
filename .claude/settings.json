@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.zilliz.com)",
+      "WebFetch(domain:milvus.io)",
+      "Bash(pip list:*)",
+      "Bash(mamba list:*)",
+      "Bash(pip index:*)",
+      "Bash(python ingest.py)",
+      "Bash(python -c \"import llama_cloud; print\\(dir\\(llama_cloud\\)\\)\")",
+      "Bash(python -c \"from llama_index.core.node_parser import SentenceSplitter; print\\(''OK''\\)\")",
+      "Bash(jobs -l)",
+      "Bash(pkill -9 -f \"python ingest.py\")",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)",
+      "Bash(xargs -I {} sh -c 'git show HEAD:{}')",
+      "Bash(/tmp/pr-command-summary.md:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/adamaslan/code/ai-text-opt/nu-finance"
+    ]
+  }
+}
