@@ -238,6 +238,11 @@ flowchart LR
 
 Ensure you have Node.js 18+ and Python 3.10+ installed.
 
+### Prerequisites
+- Zilliz Cloud account (free tier available)
+- OpenAI API key or alternative LLM provider credentials
+- Local environment with git, Node.js, and Python
+
 ### 1. Environment Configuration
 Create a `.env.local` based on `.env.example`:
 ```bash
@@ -262,7 +267,7 @@ cd frontend
 npm install
 npm run dev
 ```
- Navigate to `http://localhost:3000` 🎯
+Navigate to `http://localhost:3000` and start querying! 🎯
 
 ---
 
