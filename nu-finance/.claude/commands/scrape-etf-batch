@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""Async batch dispatcher for ETF holdings scraper.
+
+Pure terminal/CLI — no browser dependency. Parallelizes fetches across multiple ETFs.
+
+Usage:
+    scrape-etf-batch IGV SOXX CLOU --limit 4
+    scrape-etf-batch industry_etfs.txt --limit 4 --output all.csv
+    scrape-etf-batch --from-industries --limit 4
+    scrape-etf-batch --from-industries --limit 4 --output industry_holdings.csv --concurrency 15
+"""
+import argparse
+import asyncio
+import csv
+import logging
+import sys
+from pathlib import Path
+
+# Add backend to path for imports
+backend_path = Path(__file__).parent.parent.parent / "backend"
+sys.path.insert(0, str(backend_path))
+
+from gen_etf_holdings_doc import fetch_all_holdings, INDUSTRIES, holdings_to_csv_row
+
+
+def load_tickers_from_file(file_path: str) -> list[str]:
+    """Load tickers from a text or CSV file (one per line)."""
+    tickers = []
+    with open(file_path, "r") as f:
+        for line in f:
+            ticker = line.strip().upper()
+            if ticker and not ticker.startswith("#"):
+                tickers.append(ticker)
+    return tickers
+
+
+def get_industry_tickers() -> list[str]:
+    """Get all 54 industry ETF tickers from INDUSTRIES dict."""
+    tickers = []
+    for industries in INDUSTRIES.values():
+        tickers.extend(industries.values())
+    return tickers
+
+
+async def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Batch fetch ETF holdings with parallel execution",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "tickers",
+        nargs="*",
+        help="ETF ticker symbols (space-separated) or file path",
+    )
+    parser.add_argument(
+        "--from-industries",
+        action="store_true",
+        help="Fetch all 54 industry ETFs from backend/industry.py",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=4,
+        help="Number of top holdings per ETF (default 4)",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        help="CSV output file path. Omit for no file output.",
+    )
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=10,
+        help="Max parallel requests (default 10, cap 20)",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging",
+    )
+
+    args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    # Determine tickers to fetch
+    if args.from_industries:
+        tickers = get_industry_tickers()
+        print(f"Loading {len(tickers)} industry ETFs...")
+    elif args.tickers and Path(args.tickers[0]).exists():
+        file_path = args.tickers[0]
+        tickers = load_tickers_from_file(file_path)
+        print(f"Loaded {len(tickers)} tickers from {file_path}")
+    elif args.tickers:
+        tickers = [t.upper() for t in args.tickers]
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+    if not tickers:
+        print("✗ No tickers to fetch", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Fetching holdings for {len(tickers)} ETFs (limit={args.limit}, concurrency={args.concurrency})...")
+    holdings_by_ticker = await fetch_all_holdings(
+        tickers,
+        limit=args.limit,
+        concurrency=args.concurrency,
+    )
+
+    # Build CSV rows from all holdings
+    csv_rows = []
+    total_holdings = 0
+    for ticker in tickers:
+        holdings = holdings_by_ticker.get(ticker, [])
+        for holding in holdings:
+            csv_rows.append(holdings_to_csv_row(holding))
+        total_holdings += len(holdings)
+
+    if args.output:
+        output_path = Path(args.output)
+        with output_path.open("w", newline="") as f:
+            fieldnames = ["etf", "symbol", "name", "weight"]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(csv_rows)
+        print(f"✓ Written {total_holdings} holdings across {len(tickers)} ETFs to {output_path}")
+    else:
+        print(f"✓ Fetched {total_holdings} holdings across {len(tickers)} ETFs")
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n✗ Interrupted", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"✗ Error: {e}", file=sys.stderr)
+        sys.exit(1)
