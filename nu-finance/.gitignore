@@ -40,3 +40,6 @@ pids/
 .cache/
 temp/
 *.tmp
+
+# Claude Code
+.claude/

@@ -1,0 +1,37 @@
+# Configuration for 1024-Dimensional Embedding Generation
+# Use with: python create_embeddings_1024d.py
+
+# Input CSV file (must have a text column)
+input_file: "151_ideas_updated2.csv"
+
+# Output CSV file (will include original data + embeddings column)
+output_file: "ideas_with_embeddings_1024d.csv"
+
+# Model selection (choose one of the recommended 1024D models):
+# - intfloat/e5-large-v2         (State-of-the-art, highly recommended)
+# - BAAI/bge-large-en-v1.5       (Production-grade, strong baseline)
+# - jinaai/jina-embeddings-v2-large-en  (8K context window, excellent for long texts)
+model_name: "intfloat/e5-large-v2"
+
+# Batch size (lower = less memory, higher = faster)
+# For 1024D models, recommended: 8-32
+# GPU with 24GB VRAM: use 32
+# GPU with 12GB VRAM: use 16
+# CPU only: use 8-16
+batch_size: 16
+
+# Use GPU acceleration if available
+use_gpu: true
+
+# Number of worker threads (for CPU-bound operations)
+num_workers: 4
+
+# Optional cache directory (for model caching)
+cache_dir: null
+
+# Save checkpoint every N items (for recovery from interruption)
+save_interval: 50
+
+# Text column name in input CSV
+# Common values: "Ideas", "articles", "text", "content", "description"
+text_column: "Ideas"
